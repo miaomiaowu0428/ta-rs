@@ -67,3 +67,6 @@ pub use self::money_flow_index::MoneyFlowIndex;
 
 mod on_balance_volume;
 pub use self::on_balance_volume::OnBalanceVolume;
+
+mod smoothed_simple_moving_average;
+pub use self::smoothed_simple_moving_average::SmoothedSimpleMovingAverage;
