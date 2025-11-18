@@ -77,15 +77,9 @@ impl Next<f64> for SimpleMovingAverage {
         let old_val = self.deque[self.index];
         self.deque[self.index] = input;
 
-        self.index = if self.index + 1 < self.period {
-            self.index + 1
-        } else {
-            0
-        };
+        self.index = self.index + 1 % self.period;
 
-        if self.count < self.period {
-            self.count += 1;
-        }
+        self.count = (self.count + 1).min(self.period);
 
         self.sum = self.sum - old_val + input;
         self.sum / (self.count as f64)
