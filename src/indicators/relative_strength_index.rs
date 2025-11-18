@@ -1,7 +1,7 @@
 use std::fmt;
 
 use crate::errors::Result;
-use crate::indicators::{SimpleMovingAverage as Sma};
+use crate::indicators::SimpleMovingAverage as Sma;
 use crate::{Close, Next, Period, Reset};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -101,25 +101,30 @@ impl Next<f64> for RelativeStrengthIndex {
     type Output = f64;
 
     fn next(&mut self, input: f64) -> Self::Output {
-        let mut up = 0.0;
-        let mut down = 0.0;
-
-        if !self.is_new {
-            // 非首次输入，计算真实涨跌幅度
-            if input > self.prev_val {
-                up = input - self.prev_val;
-            } else {
-                down = self.prev_val - input;
+        let (up_ma, down_ma) = match self.is_new {
+            true => {
+                self.is_new = false;
+                self.prev_val = input;
+                let up_ma = self.up_ma_indicator.next(0.0);
+                let down_ma = self.down_ma_indicator.next(0.0);
+                (up_ma, down_ma)
             }
-        }
+            false => {
+                let (up_ma, down_ma) = if input > self.prev_val {
+                    let up_ma = self.up_ma_indicator.next(input - self.prev_val);
+                    let down_ma = self.down_ma_indicator.next(0.0);
+                    (up_ma, down_ma)
+                } else {
+                    let up_ma = self.up_ma_indicator.next(0.0);
+                    let down_ma = self.down_ma_indicator.next(self.prev_val - input);
+                    (up_ma, down_ma)
+                };
+                // 2. 状态更新
+                self.prev_val = input; // 更新 prev_val 到当前值
 
-        // 首次输入：无需处理涨跌（移动平均会用首值初始化），仅更新状态
-        self.is_new = false;
-        self.prev_val = input;
-
-        // 移动平均直接处理（无论是否首次，首次输入时 up/down=0.0，MA 会自动初始化）
-        let up_ma = self.up_ma_indicator.next(up);
-        let down_ma = self.down_ma_indicator.next(down);
+                (up_ma, down_ma)
+            }
+        };
 
         // 避免除零（极端情况：MA 结果均为 0，返回 50.0 中性值）
         if up_ma + down_ma < 1e-9 {
