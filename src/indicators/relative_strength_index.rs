@@ -2,6 +2,7 @@ use std::fmt;
 
 use crate::errors::Result;
 use crate::indicators::SimpleMovingAverage as Sma;
+use crate::indicators::SmoothedSimpleMovingAverage as Ssma;
 use crate::{Close, Next, Period, Reset};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -73,8 +74,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone)]
 pub struct RelativeStrengthIndex {
     period: usize,
-    up_ma_indicator: Sma,
-    down_ma_indicator: Sma,
+    up_ma_indicator: Ssma,
+    down_ma_indicator: Ssma,
     prev_val: f64,
     is_new: bool,
 }
@@ -83,8 +84,8 @@ impl RelativeStrengthIndex {
     pub fn new(period: usize) -> Result<Self> {
         Ok(Self {
             period,
-            up_ma_indicator: Sma::new(period)?,
-            down_ma_indicator: Sma::new(period)?,
+            up_ma_indicator: Ssma::new(period)?,
+            down_ma_indicator: Ssma::new(period)?,
             prev_val: 0.0,
             is_new: true,
         })
