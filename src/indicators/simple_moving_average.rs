@@ -81,13 +81,14 @@ impl Next<f64> for SimpleMovingAverage {
 
         self.count = (self.count + 1).min(self.period);
 
-        self.sum = {
-            let mut res = 0.0;
-            for i in 0..self.count {
-                res += self.deque[i]
-            }
-            res
-        };
+        // self.sum = {
+        //     let mut res = 0.0;
+        //     for i in 0..self.count {
+        //         res += self.deque[i]
+        //     }
+        //     res
+        // };
+        self.sum = self.sum - old_val + input;
         self.sum / (self.count as f64)
     }
 }
