@@ -73,8 +73,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone)]
 pub struct RelativeStrengthIndex {
     period: usize,
-    up_ema_indicator: Sma,
-    down_ema_indicator: Sma,
+    up_ma_indicator: Sma,
+    down_ma_indicator: Sma,
     prev_val: f64,
     is_new: bool,
 }
@@ -83,8 +83,8 @@ impl RelativeStrengthIndex {
     pub fn new(period: usize) -> Result<Self> {
         Ok(Self {
             period,
-            up_ema_indicator: Sma::new(period)?,
-            down_ema_indicator: Sma::new(period)?,
+            up_ma_indicator: Sma::new(period)?,
+            down_ma_indicator: Sma::new(period)?,
             prev_val: 0.0,
             is_new: true,
         })
@@ -118,8 +118,8 @@ impl Next<f64> for RelativeStrengthIndex {
         self.prev_val = input;
 
         // 移动平均直接处理（无论是否首次，首次输入时 up/down=0.0，MA 会自动初始化）
-        let up_ma = self.up_ema_indicator.next(up);
-        let down_ma = self.down_ema_indicator.next(down);
+        let up_ma = self.up_ma_indicator.next(up);
+        let down_ma = self.down_ma_indicator.next(down);
 
         // 避免除零（极端情况：MA 结果均为 0，返回 50.0 中性值）
         if up_ma + down_ma < 1e-9 {
@@ -142,8 +142,8 @@ impl Reset for RelativeStrengthIndex {
     fn reset(&mut self) {
         self.is_new = true;
         self.prev_val = 0.0;
-        self.up_ema_indicator.reset();
-        self.down_ema_indicator.reset();
+        self.up_ma_indicator.reset();
+        self.down_ma_indicator.reset();
     }
 }
 
