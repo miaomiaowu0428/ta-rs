@@ -104,12 +104,8 @@ impl Next<f64> for RelativeStrengthIndex {
         let mut up = 0.0;
         let mut down = 0.0;
 
-        if self.is_new {
-            self.is_new = false;
-            // Initialize with some small seed numbers to avoid division by zero
-            up = 0.1;
-            down = 0.1;
-        } else {
+        if !self.is_new {
+            // 非首次输入，计算真实涨跌幅度
             if input > self.prev_val {
                 up = input - self.prev_val;
             } else {
@@ -117,10 +113,20 @@ impl Next<f64> for RelativeStrengthIndex {
             }
         }
 
+        // 首次输入：无需处理涨跌（移动平均会用首值初始化），仅更新状态
+        self.is_new = false;
         self.prev_val = input;
-        let up_ema = self.up_ema_indicator.next(up);
-        let down_ema = self.down_ema_indicator.next(down);
-        100.0 * up_ema / (up_ema + down_ema)
+
+        // 移动平均直接处理（无论是否首次，首次输入时 up/down=0.0，MA 会自动初始化）
+        let up_ma = self.up_ema_indicator.next(up);
+        let down_ma = self.down_ema_indicator.next(down);
+
+        // 避免除零（极端情况：MA 结果均为 0，返回 50.0 中性值）
+        if up_ma + down_ma < 1e-9 {
+            return 50.0;
+        }
+
+        100.0 * up_ma / (up_ma + down_ma)
     }
 }
 
